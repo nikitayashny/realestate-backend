@@ -25,25 +25,24 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
-    private final CustomOAuth2UserService customOAuth2UserService;
 
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Validated @RequestBody User user) {
-        if (userService.findByUsername(user.getUsername()).isPresent()) {
+        if (userService.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Username is already taken!");
         }
         userService.saveUser(user);
-        String token = jwtUtil.generateToken(user.getUsername());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail());
         return ResponseEntity.ok().body(Map.of("token", token));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User user) {
-        var existingUser = userService.findByUsername(user.getUsername());
+        var existingUser = userService.findByEmail(user.getEmail());
         if (existingUser.isPresent() &&
                 passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword())) {
-            String token = jwtUtil.generateToken(user.getUsername());
+            String token = jwtUtil.generateToken(user.getUsername(), user.getEmail());
             return ResponseEntity.ok().body(Map.of("token", token));
         }
         return ResponseEntity.status(401).body("Invalid username or password");
@@ -77,7 +76,7 @@ public class AuthController {
             userRepository.save(newUser);
         }
 
-        String jwt = jwtUtil.generateToken(name);
+        String jwt = jwtUtil.generateToken(name, email);
 
         return ResponseEntity.ok().body(Map.of("token", jwt));
     }
