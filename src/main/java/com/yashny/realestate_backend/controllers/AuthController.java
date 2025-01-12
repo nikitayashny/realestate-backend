@@ -2,10 +2,10 @@ package com.yashny.realestate_backend.controllers;
 
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.repositories.UserRepository;
-import com.yashny.realestate_backend.services.CustomOAuth2UserService;
 import com.yashny.realestate_backend.services.UserService;
 import com.yashny.realestate_backend.utils.JwtUtil;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.validation.annotation.Validated;
@@ -42,7 +42,7 @@ public class AuthController {
         var existingUser = userService.findByEmail(user.getEmail());
         if (existingUser.isPresent() &&
                 passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword())) {
-            String token = jwtUtil.generateToken(user.getUsername(), user.getEmail());
+            String token = jwtUtil.generateToken(existingUser.get().getUsername(), user.getEmail());
             return ResponseEntity.ok().body(Map.of("token", token));
         }
         return ResponseEntity.status(401).body("Invalid username or password");
@@ -74,9 +74,20 @@ public class AuthController {
             newUser.setProvider("GOOGLE");
             newUser.setEnabled(true);
             userRepository.save(newUser);
+            String jwt = jwtUtil.generateToken(name, email);
+            return ResponseEntity.ok().body(Map.of("token", jwt));
         }
 
-        String jwt = jwtUtil.generateToken(name, email);
+        String jwt = jwtUtil.generateToken(existingUser.get().getUsername(), email);
+        return ResponseEntity.ok().body(Map.of("token", jwt));
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<?> auth(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        if (authorization == null) {
+            return ResponseEntity.ok().build();
+        }
+        String jwt = authorization.substring(7);
 
         return ResponseEntity.ok().body(Map.of("token", jwt));
     }
