@@ -1,7 +1,12 @@
 package com.yashny.realestate_backend.controllers;
 
+import com.yashny.realestate_backend.dto.ConfirmDto;
 import com.yashny.realestate_backend.entities.User;
+import com.yashny.realestate_backend.entities.UserCode;
+import com.yashny.realestate_backend.repositories.UserCodeRepository;
 import com.yashny.realestate_backend.repositories.UserRepository;
+import com.yashny.realestate_backend.services.EmailSenderService;
+import com.yashny.realestate_backend.services.UserCodeService;
 import com.yashny.realestate_backend.services.UserService;
 import com.yashny.realestate_backend.utils.JwtUtil;
 import lombok.AllArgsConstructor;
@@ -13,8 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 @RestController
 @AllArgsConstructor
@@ -25,6 +32,9 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final EmailSenderService emailSenderService;
+    private final UserCodeService userCodeService;
+    private final UserCodeRepository userCodeRepository;
 
 
     @PostMapping("/register")
@@ -32,8 +42,35 @@ public class AuthController {
         if (userService.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Username is already taken!");
         }
-        userService.saveUser(user);
+//        userService.saveUser(user);
+//        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail());
+//        return ResponseEntity.ok().body(Map.of("token", token));
+        Random random = new Random();
+        String confirmationCode = String.valueOf(100000 + random.nextInt(900000));
+        emailSenderService.sendConfirmationCode(user.getEmail(), confirmationCode);
+        userCodeService.create(user.getEmail(), confirmationCode);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirm(@RequestBody @Validated ConfirmDto user) {
+        UserCode userCode = userCodeService.findByEmail(user.getEmail());
+
+        if (!userCode.getCode().equals(user.getCode())) {
+            return ResponseEntity.badRequest().body("Неверный код подтверждения");
+        }
+
+        User newUser = new User();
+        newUser.setUsername(user.getUsername());
+        newUser.setEmail(user.getEmail());
+        newUser.setPassword(user.getPassword());
+        userService.saveUser(newUser);
+
         String token = jwtUtil.generateToken(user.getUsername(), user.getEmail());
+
+        userCodeRepository.delete(userCode);
+
         return ResponseEntity.ok().body(Map.of("token", token));
     }
 
