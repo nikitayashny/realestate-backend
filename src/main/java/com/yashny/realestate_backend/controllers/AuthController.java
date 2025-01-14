@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -36,15 +35,12 @@ public class AuthController {
     private final UserCodeService userCodeService;
     private final UserCodeRepository userCodeRepository;
 
-
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Validated @RequestBody User user) {
         if (userService.findByEmail(user.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Username is already taken!");
         }
-//        userService.saveUser(user);
-//        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail());
-//        return ResponseEntity.ok().body(Map.of("token", token));
+
         Random random = new Random();
         String confirmationCode = String.valueOf(100000 + random.nextInt(900000));
         emailSenderService.sendConfirmationCode(user.getEmail(), confirmationCode);
@@ -65,9 +61,10 @@ public class AuthController {
         newUser.setUsername(user.getUsername());
         newUser.setEmail(user.getEmail());
         newUser.setPassword(user.getPassword());
+        newUser.setRole("USER");
         userService.saveUser(newUser);
 
-        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail(), newUser.getRole());
 
         userCodeRepository.delete(userCode);
 
@@ -79,7 +76,9 @@ public class AuthController {
         var existingUser = userService.findByEmail(user.getEmail());
         if (existingUser.isPresent() &&
                 passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword())) {
-            String token = jwtUtil.generateToken(existingUser.get().getUsername(), user.getEmail());
+            String token = jwtUtil.generateToken(
+                    existingUser.get().getUsername(), user.getEmail(), existingUser.get().getRole());
+
             return ResponseEntity.ok().body(Map.of("token", token));
         }
         return ResponseEntity.status(401).body("Invalid username or password");
@@ -110,12 +109,13 @@ public class AuthController {
             newUser.setProfilePicture(profilePicture);
             newUser.setProvider("GOOGLE");
             newUser.setEnabled(true);
+            newUser.setRole("USER");
             userRepository.save(newUser);
-            String jwt = jwtUtil.generateToken(name, email);
+            String jwt = jwtUtil.generateToken(name, email, "USER");
             return ResponseEntity.ok().body(Map.of("token", jwt));
         }
 
-        String jwt = jwtUtil.generateToken(existingUser.get().getUsername(), email);
+        String jwt = jwtUtil.generateToken(existingUser.get().getUsername(), email, existingUser.get().getRole());
         return ResponseEntity.ok().body(Map.of("token", jwt));
     }
 

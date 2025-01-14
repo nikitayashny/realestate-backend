@@ -12,13 +12,14 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    private final int jwtExpirationMs = 3600000;
     private final Key jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
-    public String generateToken(String username, String email) {
+    public String generateToken(String username, String email, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userName", username);
         claims.put("email", email);
+        claims.put("role", role);
+        int jwtExpirationMs = 3600000;
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date())
