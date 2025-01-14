@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DealType {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "dealType_id_seq")
+    @SequenceGenerator(name = "dealType_id_seq", sequenceName = "dealType_id_seq", allocationSize = 1)
     @Column(name = "id")
     private Long id;
     private String dealTypeName;
