@@ -1,6 +1,6 @@
 package com.yashny.realestate_backend.controllers;
 
-import com.yashny.realestate_backend.dto.RealtDto;
+import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.services.RealtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,14 +26,11 @@ public class RealtController {
     }
 
     @PostMapping("")
-    public ResponseEntity<?> addRealt(@RequestParam("name") String name,
+    public ResponseEntity<?> addRealt(@ModelAttribute("realt") Realt realt,
                                       @RequestParam("files") MultipartFile[] files) {
         try {
-            RealtDto realtDto = new RealtDto();
-            realtDto.setName(name);
             List<String> imageUrls = realtService.uploadImages(files);
-            realtDto.setImages(imageUrls);
-            realtService.addRealt(realtDto);
+            realtService.addRealt(realt, imageUrls);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
