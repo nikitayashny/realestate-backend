@@ -1,8 +1,12 @@
 package com.yashny.realestate_backend.controllers;
 
 import com.yashny.realestate_backend.entities.Realt;
+import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.services.RealtService;
+import com.yashny.realestate_backend.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +19,7 @@ import java.util.List;
 public class RealtController {
 
     private final RealtService realtService;
+    private final JwtUtil jwtUtil;
 
     @GetMapping("")
     public ResponseEntity<?> getRealts() {
@@ -27,8 +32,12 @@ public class RealtController {
 
     @PostMapping("")
     public ResponseEntity<?> addRealt(@ModelAttribute("realt") Realt realt,
-                                      @RequestParam("files") MultipartFile[] files) {
+                                      @RequestParam("files") MultipartFile[] files,
+                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         try {
+            String token = authorization.substring(7);
+            User user = jwtUtil.getUserFromToken(token);
+            realt.setUser(user);
             List<String> imageUrls = realtService.uploadImages(files);
             realtService.addRealt(realt, imageUrls);
             return ResponseEntity.ok().build();
@@ -38,10 +47,15 @@ public class RealtController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteRealt(@PathVariable Long id) {
+    public ResponseEntity<?> deleteRealt(@PathVariable Long id,
+                                         @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         try {
-            realtService.deleteRealt(id);
-            return ResponseEntity.ok().build();
+            String token = authorization.substring(7);
+            User user = jwtUtil.getUserFromToken(token);
+            if (realtService.deleteRealt(id, user))
+                return ResponseEntity.ok().build();
+            else
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("FORBIDDEN");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }

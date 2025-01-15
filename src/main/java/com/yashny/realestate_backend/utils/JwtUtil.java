@@ -1,53 +1,83 @@
 package com.yashny.realestate_backend.utils;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.yashny.realestate_backend.entities.User;
+import com.yashny.realestate_backend.services.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class JwtUtil {
 
-    private final Key jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    @Value("${security.jwt.token.secret-key:secret-key}")
+    private String secretKey;
+
+    private final UserService userService;
 
     public String generateToken(String username, String email, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userName", username);
-        claims.put("email", email);
-        claims.put("role", role);
-        int jwtExpirationMs = 3600000;
-        return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(jwtSecret)
-                .compact();
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + 3600000 * 24);
+
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        return JWT.create()
+                .withClaim("email", email)
+                .withClaim("role", role)
+                .withClaim("userName", username)
+                .withIssuedAt(now)
+                .withExpiresAt(validity)
+                .sign(algorithm);
     }
 
-    public String getUsernameFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(jwtSecret)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-    }
 
-    public boolean validateToken(String token) {
+    public Authentication validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(jwtSecret)
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            Algorithm algorithm = Algorithm.HMAC256(secretKey);
+            JWTVerifier verifier = JWT.require(algorithm)
+                    .build();
+            DecodedJWT decoded = verifier.verify(token);
+            String email = decoded.getClaim("email").asString();
+            User user = userService.findByEmail(email).orElseThrow();
+            return new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+        } catch (Exception e) {
+            throw e;
         }
     }
 
+    public boolean isAdmin(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        JWTVerifier verifier = JWT.require(algorithm)
+                .build();
+        DecodedJWT decoded = verifier.verify(token);
+        String role = decoded.getClaim("role").asString();
+        return role.equals("ADMIN");
+    }
+
+    public boolean isSuperAdmin(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        JWTVerifier verifier = JWT.require(algorithm)
+                .build();
+        DecodedJWT decoded = verifier.verify(token);
+        String role = decoded.getClaim("role").asString();
+        return role.equals("SUPER_ADMIN");
+    }
+
+    public User getUserFromToken(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+        JWTVerifier verifier = JWT.require(algorithm)
+                .build();
+        DecodedJWT decoded = verifier.verify(token);
+        String email = decoded.getClaim("email").asString();
+        return userService.findByEmail(email).orElseThrow();
+    }
 
 }

@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,24 +22,35 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest httpServletRequest,
+                                    HttpServletResponse httpServletResponse,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
-        String path = request.getRequestURI();
+
+        String path = httpServletRequest.getRequestURI();
 
         if (path.startsWith("/login") || path.startsWith("/oauth2") || path.startsWith("/error")) {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(httpServletRequest, httpServletResponse);
             return;
         }
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            if (jwtUtil.validateToken(token)) {
-                String username = jwtUtil.getUsernameFromToken(token);
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(username, null, null);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String header = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (header != null && !header.equals("Bearer null")) {
+            String[] authElements = header.split(" ");
+
+            if (authElements.length == 2
+                    && "Bearer".equals(authElements[0])) {
+                try {
+                    SecurityContextHolder.getContext().setAuthentication(
+                            jwtUtil.validateToken(authElements[1]));
+                } catch (RuntimeException e) {
+                    SecurityContextHolder.clearContext();
+                    throw e;
+                }
             }
         }
-        filterChain.doFilter(request, response);
+
+        filterChain.doFilter(httpServletRequest, httpServletResponse);
     }
 }
