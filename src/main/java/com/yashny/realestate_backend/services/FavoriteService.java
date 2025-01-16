@@ -19,13 +19,18 @@ public class FavoriteService {
     private final RealtRepository realtRepository;
     private final FavoriteRepository favoriteRepository;
 
-    public void addFavorite(Long id, User user) {
-        Favorite favorite = new Favorite();
+    public boolean addFavorite(Long id, User user) {
         Realt realt = realtRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Realt not found"));
-        favorite.setUser(user);
-        favorite.setRealt(realt);
-        favoriteRepository.save(favorite);
+        if (favoriteRepository.findByUserAndRealt(user, realt) == null) {
+            Favorite favorite = new Favorite();
+            favorite.setUser(user);
+            favorite.setRealt(realt);
+            favoriteRepository.save(favorite);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public List<Realt> getFavorites(Long userId) {

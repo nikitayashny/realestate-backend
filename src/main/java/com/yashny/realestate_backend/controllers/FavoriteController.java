@@ -36,9 +36,11 @@ public class FavoriteController {
         try {
             String token = authorization.substring(7);
             User user = jwtUtil.getUserFromToken(token);
-            favoriteService.addFavorite(id, user);
-
-            return ResponseEntity.ok().build();
+            if (favoriteService.addFavorite(id, user)) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.badRequest().body("Favorite already exist");
+            }
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
