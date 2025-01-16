@@ -2,10 +2,12 @@ package com.yashny.realestate_backend.services;
 
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
+import com.yashny.realestate_backend.repositories.FavoriteRepository;
 import com.yashny.realestate_backend.repositories.RealtRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -19,6 +21,7 @@ public class RealtService {
 
     private final RealtRepository realtRepository;
     private final ImageService imageService;
+    private final FavoriteRepository favoriteRepository;
 
     public List<Realt> getRealts() {
         List<Realt> realts = realtRepository.findAll();
@@ -38,11 +41,13 @@ public class RealtService {
         realtRepository.save(realt);
     }
 
+    @Transactional
     public boolean deleteRealt(Long id, User user) {
         Realt realt = realtRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Realt not found with id " + id));
 
         if (realt.getUser() == user || Objects.equals(user.getRole(), "ADMIN") || Objects.equals(user.getRole(), "SUPER_ADMIN")) {
+            favoriteRepository.deleteAllByRealtId(id);
             realtRepository.delete(realt);
             return true;
         }
