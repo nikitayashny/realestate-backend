@@ -30,6 +30,15 @@ public class RealtController {
         }
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> realt(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(realtService.getRealt(id));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
     @PostMapping("")
     public ResponseEntity<?> addRealt(@ModelAttribute("realt") Realt realt,
                                       @RequestParam("files") MultipartFile[] files,

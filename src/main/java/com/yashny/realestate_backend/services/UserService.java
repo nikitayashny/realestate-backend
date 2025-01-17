@@ -1,6 +1,5 @@
 package com.yashny.realestate_backend.services;
 
-import com.yashny.realestate_backend.entities.Post;
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.entities.UserFilter;

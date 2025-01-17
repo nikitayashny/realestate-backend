@@ -145,4 +145,9 @@ public class RealtService {
         realt.setReposts(realt.getReposts() + 1);
         realtRepository.save(realt);
     }
+
+    public Realt getRealt(Long id) {
+        return realtRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Realt not found with id " + id));
+    }
 }
