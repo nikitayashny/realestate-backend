@@ -1,6 +1,5 @@
 package com.yashny.realestate_backend.controllers;
 
-import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.services.FavoriteService;
 import com.yashny.realestate_backend.utils.JwtUtil;
