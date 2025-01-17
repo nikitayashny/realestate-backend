@@ -1,10 +1,13 @@
 package com.yashny.realestate_backend.config;
 
 import com.yashny.realestate_backend.entities.User;
+import com.yashny.realestate_backend.entities.UserFilter;
+import com.yashny.realestate_backend.repositories.UserFilterRepository;
 import com.yashny.realestate_backend.repositories.UserRepository;
 import com.yashny.realestate_backend.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -15,15 +18,12 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
-
-    public OAuth2LoginSuccessHandler(JwtUtil jwtUtil, UserRepository userRepository) {
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-    }
+    private final UserFilterRepository userFilterRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -48,6 +48,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             newUser.setEnabled(true);
             newUser.setRole("USER");
             userRepository.save(newUser);
+
+            UserFilter userFilter = new UserFilter();
+            userFilter.setUser(newUser);
+            userFilterRepository.save(userFilter);
         }
 
         String jwt = jwtUtil.generateToken(name, email, existingUser.isPresent() ? existingUser.get().getRole() : "USER");

@@ -3,8 +3,10 @@ package com.yashny.realestate_backend.data;
 import com.yashny.realestate_backend.entities.DealType;
 import com.yashny.realestate_backend.entities.Type;
 import com.yashny.realestate_backend.entities.User;
+import com.yashny.realestate_backend.entities.UserFilter;
 import com.yashny.realestate_backend.repositories.DealTypeRepository;
 import com.yashny.realestate_backend.repositories.TypeRepository;
+import com.yashny.realestate_backend.repositories.UserFilterRepository;
 import com.yashny.realestate_backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -19,6 +21,7 @@ public class DataLoader implements CommandLineRunner {
     private final UserRepository userRepository;
     private final TypeRepository typeRepository;
     private final DealTypeRepository dealTypeRepository;
+    private final UserFilterRepository userFilterRepository;
 
     @Override
     public void run(String... args) {
@@ -41,6 +44,10 @@ public class DataLoader implements CommandLineRunner {
             super_admin.setPassword(passwordEncoder.encode("1"));
             super_admin.setEmail("homehuboff@gmail.com");
             userRepository.save(super_admin);
+
+            UserFilter userFilter = new UserFilter();
+            userFilter.setUser(super_admin);
+            userFilterRepository.save(userFilter);
         }
     }
 }

@@ -3,7 +3,9 @@ package com.yashny.realestate_backend.controllers;
 import com.yashny.realestate_backend.dto.ConfirmDto;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.entities.UserCode;
+import com.yashny.realestate_backend.entities.UserFilter;
 import com.yashny.realestate_backend.repositories.UserCodeRepository;
+import com.yashny.realestate_backend.repositories.UserFilterRepository;
 import com.yashny.realestate_backend.repositories.UserRepository;
 import com.yashny.realestate_backend.services.EmailSenderService;
 import com.yashny.realestate_backend.services.UserCodeService;
@@ -34,6 +36,7 @@ public class AuthController {
     private final EmailSenderService emailSenderService;
     private final UserCodeService userCodeService;
     private final UserCodeRepository userCodeRepository;
+    private final UserFilterRepository userFilterRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Validated @RequestBody User user) {
@@ -111,6 +114,11 @@ public class AuthController {
             newUser.setEnabled(true);
             newUser.setRole("USER");
             userRepository.save(newUser);
+
+            UserFilter userFilter = new UserFilter();
+            userFilter.setUser(newUser);
+            userFilterRepository.save(userFilter);
+
             String jwt = jwtUtil.generateToken(name, email, "USER");
             return ResponseEntity.ok().body(Map.of("token", jwt));
         }
