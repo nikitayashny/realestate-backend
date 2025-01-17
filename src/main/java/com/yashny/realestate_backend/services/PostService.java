@@ -5,10 +5,6 @@ import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.repositories.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
