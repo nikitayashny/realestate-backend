@@ -2,8 +2,10 @@ package com.yashny.realestate_backend.services;
 
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
+import com.yashny.realestate_backend.entities.UserFilter;
 import com.yashny.realestate_backend.repositories.FavoriteRepository;
 import com.yashny.realestate_backend.repositories.RealtRepository;
+import com.yashny.realestate_backend.repositories.UserFilterRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class RealtService {
     private final RealtRepository realtRepository;
     private final ImageService imageService;
     private final FavoriteRepository favoriteRepository;
+    private final UserFilterRepository userFilterRepository;
+    private final EmailSenderService emailSenderService;
 
     public List<Realt> getRealts() {
         List<Realt> realts = realtRepository.findAll();
@@ -39,6 +43,57 @@ public class RealtService {
         realt.setViews(0L);
         realt.setImages(imageUrls);
         realtRepository.save(realt);
+
+        List<UserFilter> userFilterList = userFilterRepository.findAll();
+        List<UserFilter> activeUserFilters = userFilterList.stream()
+                .filter(UserFilter::isActive)
+                .toList();
+
+        for (UserFilter filter : activeUserFilters) {
+            boolean matches = true;
+
+            if (filter.getCity() != null && !filter.getCity().isEmpty() && !filter.getCity().equals(realt.getCity())) {
+                matches = false;
+            }
+
+            if (filter.getMaxPrice() != 0 && filter.getMaxPrice() < realt.getPrice()) {
+                matches = false;
+            }
+
+            if (filter.getRoomsCount() != 0 && filter.getRoomsCount() != realt.getRoomsCount()) {
+                matches = false;
+            }
+
+            if (filter.getType() != null && filter.getType() != realt.getType()) {
+                matches = false;
+            }
+
+            if (filter.getDealType() != null && filter.getDealType() != realt.getDealType()) {
+                matches = false;
+            }
+
+            if (matches) {
+                String subject = "Подходящее для вас объявление!";
+                String body = String.format(
+                        "Здравствуйте, %s!\n\n" +
+                                "Мы рады сообщить, что найдено новое объявление, подходящее под ваши фильтры:\n" +
+                                "Название: %s\n" +
+                                "Цена: %d\n" +
+                                "Количество комнат: %d\n" +
+                                "Город: %s\n" +
+                                "Посмотреть можно по ссылке: %s%d\n\n" +
+                                "С уважением,\n" +
+                                "HomeHub.",
+                        filter.getUser().getUsername(),
+                        realt.getName(),
+                        realt.getPrice(),
+                        realt.getRoomsCount(),
+                        realt.getCity(),
+                        "https://localhost:3000/realt/", realt.getId()
+                );
+                emailSenderService.sendEmail(filter.getUser().getEmail(), subject, body);
+            }
+        }
     }
 
     @Transactional
