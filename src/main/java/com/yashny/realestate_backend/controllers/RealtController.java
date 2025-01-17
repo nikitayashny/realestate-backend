@@ -61,4 +61,34 @@ public class RealtController {
         }
     }
 
+    @PostMapping("/like/{id}")
+    public ResponseEntity<?> likeRealt(@PathVariable Long id) {
+        try {
+            realtService.likeRealt(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/view/{id}")
+    public ResponseEntity<?> viewRealt(@PathVariable Long id) {
+        try {
+            realtService.viewRealt(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/repost/{id}")
+    public ResponseEntity<?> repostRealt(@PathVariable Long id) {
+        try {
+            realtService.repostRealt(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
 }

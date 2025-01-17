@@ -121,4 +121,28 @@ public class RealtService {
 
         return imageService.uploadImages(imageStreams, imageNames);
     }
+
+    public void likeRealt(Long id) {
+        Realt realt = realtRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Realt not found with id " + id));
+
+        realt.setLikes(realt.getLikes() + 1);
+        realtRepository.save(realt);
+    }
+
+    public void viewRealt(Long id) {
+        Realt realt = realtRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Realt not found with id " + id));
+
+        realt.setViews(realt.getViews() + 1);
+        realtRepository.save(realt);
+    }
+
+    public void repostRealt(Long id) {
+        Realt realt = realtRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Realt not found with id " + id));
+
+        realt.setReposts(realt.getReposts() + 1);
+        realtRepository.save(realt);
+    }
 }
