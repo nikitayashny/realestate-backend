@@ -13,6 +13,7 @@ import com.yashny.realestate_backend.services.UserService;
 import com.yashny.realestate_backend.utils.JwtUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.validation.annotation.Validated;
@@ -78,7 +79,8 @@ public class AuthController {
     public ResponseEntity<?> loginUser(@RequestBody User user) {
         var existingUser = userService.findByEmail(user.getEmail());
         if (existingUser.isPresent() &&
-                passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword())) {
+                passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword()) &&
+                existingUser.get().isEnabled()) {
             String token = jwtUtil.generateToken(
                     existingUser.get().getUsername(), user.getEmail(), existingUser.get().getRole());
 
@@ -123,8 +125,12 @@ public class AuthController {
             return ResponseEntity.ok().body(Map.of("token", jwt));
         }
 
-        String jwt = jwtUtil.generateToken(existingUser.get().getUsername(), email, existingUser.get().getRole());
-        return ResponseEntity.ok().body(Map.of("token", jwt));
+        if (existingUser.get().isEnabled()) {
+            String jwt = jwtUtil.generateToken(existingUser.get().getUsername(), email, existingUser.get().getRole());
+            return ResponseEntity.ok().body(Map.of("token", jwt));
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Ваш аккаунт заблокирован");
+        }
     }
 
     @GetMapping("/check")

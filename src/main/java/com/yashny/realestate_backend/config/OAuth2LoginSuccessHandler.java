@@ -52,13 +52,19 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             UserFilter userFilter = new UserFilter();
             userFilter.setUser(newUser);
             userFilterRepository.save(userFilter);
+
+            String jwt = jwtUtil.generateToken(name, email, "USER");
+            response.setContentType("application/json");
+            response.getWriter().write("{\"token\":\"" + jwt + "\"}");
+            response.addHeader("Authorization", "Bearer " + jwt);
+
         }
+        else if (existingUser.get().isEnabled()) {
 
-        String jwt = jwtUtil.generateToken(name, email, existingUser.isPresent() ? existingUser.get().getRole() : "USER");
-
-        response.setContentType("application/json");
-        response.getWriter().write("{\"token\":\"" + jwt + "\"}");
-
-        response.addHeader("Authorization", "Bearer " + jwt);
+            String jwt = jwtUtil.generateToken(name, email, existingUser.get().getRole() );
+            response.setContentType("application/json");
+            response.getWriter().write("{\"token\":\"" + jwt + "\"}");
+            response.addHeader("Authorization", "Bearer " + jwt);
+        }
     }
 }

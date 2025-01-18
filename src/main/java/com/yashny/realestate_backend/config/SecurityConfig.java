@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login", "/error", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/realts/**", "/api/posts/**", "/api/users/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/realts/view", "/api/realts/repost").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/realts/view/**", "/api/realts/repost/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
