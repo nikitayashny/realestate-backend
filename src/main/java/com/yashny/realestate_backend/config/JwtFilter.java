@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -39,14 +40,22 @@ public class JwtFilter extends OncePerRequestFilter {
         if (header != null && !header.equals("Bearer null")) {
             String[] authElements = header.split(" ");
 
-            if (authElements.length == 2
-                    && "Bearer".equals(authElements[0])) {
+            if (authElements.length == 2 && "Bearer".equals(authElements[0])) {
                 try {
-                    SecurityContextHolder.getContext().setAuthentication(
-                            jwtUtil.validateToken(authElements[1]));
+                    Authentication authentication = jwtUtil.validateToken(authElements[1]);
+
+                    if (authentication != null) {
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    } else {
+                        httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        httpServletResponse.getWriter().write("Token is expired or invalid");
+                        return;
+                    }
                 } catch (RuntimeException e) {
                     SecurityContextHolder.clearContext();
-                    throw e;
+                    httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    httpServletResponse.getWriter().write("Authentication failed: " + e.getMessage());
+                    return;
                 }
             }
         }

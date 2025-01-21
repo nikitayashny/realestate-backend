@@ -31,7 +31,7 @@ public class RealtController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> realt(@PathVariable Long id) {
+    public ResponseEntity<?> getRealt(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(realtService.getRealt(id));
         } catch (Exception e) {

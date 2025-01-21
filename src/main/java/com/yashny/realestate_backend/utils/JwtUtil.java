@@ -3,6 +3,8 @@ package com.yashny.realestate_backend.utils;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.services.UserService;
@@ -48,8 +50,10 @@ public class JwtUtil {
             String email = decoded.getClaim("email").asString();
             User user = userService.findByEmail(email).orElseThrow();
             return new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
-        } catch (Exception e) {
-            throw e;
+        } catch (TokenExpiredException e) {
+            return null;
+        } catch (JWTVerificationException e) {
+            throw new RuntimeException("Invalid token");
         }
     }
 
