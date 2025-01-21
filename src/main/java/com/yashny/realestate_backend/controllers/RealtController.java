@@ -1,5 +1,7 @@
 package com.yashny.realestate_backend.controllers;
 
+import com.yashny.realestate_backend.dto.RealtsResponse;
+import com.yashny.realestate_backend.dto.RequestRealtDto;
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.services.RealtService;
@@ -22,9 +24,13 @@ public class RealtController {
     private final JwtUtil jwtUtil;
 
     @GetMapping("")
-    public ResponseEntity<?> getRealts() {
+    public ResponseEntity<?> getRealts(@ModelAttribute RequestRealtDto requestRealtDto) {
         try {
-            return ResponseEntity.ok(realtService.getRealts());
+            List<Realt> realts = realtService.getRealts(requestRealtDto);
+            long count = realtService.getCount();
+
+            RealtsResponse response = new RealtsResponse(realts, count);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }

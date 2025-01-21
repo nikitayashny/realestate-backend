@@ -1,5 +1,6 @@
 package com.yashny.realestate_backend.services;
 
+import com.yashny.realestate_backend.dto.RequestRealtDto;
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.entities.UserFilter;
@@ -16,6 +17,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -27,14 +31,19 @@ public class RealtService {
     private final UserFilterRepository userFilterRepository;
     private final EmailSenderService emailSenderService;
 
-    public List<Realt> getRealts() {
-        List<Realt> realts = realtRepository.findAll();
-        for (Realt realt : realts) {
+    public List<Realt> getRealts(RequestRealtDto requestRealtDto) {
+        int page = requestRealtDto.getPage();
+        int limit = requestRealtDto.getLimit();
+
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<Realt> realtPage = realtRepository.findAll(pageable);
+
+        for (Realt realt : realtPage.getContent()) {
             User user = realt.getUser();
             user.setPassword(null);
             realt.setUser(user);
         }
-        return realts;
+        return realtPage.getContent();
     }
 
     public void addRealt(Realt realt, List<String> imageUrls) {
@@ -149,5 +158,9 @@ public class RealtService {
     public Realt getRealt(Long id) {
         return realtRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Realt not found with id " + id));
+    }
+
+    public long getCount() {
+        return realtRepository.count();
     }
 }
