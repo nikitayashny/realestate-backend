@@ -36,7 +36,6 @@ public class RealtService {
     private final FavoriteRepository favoriteRepository;
     private final UserFilterRepository userFilterRepository;
     private final EmailSenderService emailSenderService;
-    private final DealTypeRepository dealTypeRepository;
 
     public List<Realt> getRealts(RequestRealtDto requestRealtDto) {
         int page = requestRealtDto.getPage();

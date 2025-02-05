@@ -26,12 +26,13 @@ public class JwtUtil {
 
     private final UserService userService;
 
-    public String generateToken(String username, String email, String role) {
+    public String generateToken(String username, String email, String role, Long userId) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + 3600000 * 24);
 
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
         return JWT.create()
+                .withClaim("userId", userId)
                 .withClaim("email", email)
                 .withClaim("role", role)
                 .withClaim("userName", username)

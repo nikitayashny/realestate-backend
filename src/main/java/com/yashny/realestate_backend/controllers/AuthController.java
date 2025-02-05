@@ -68,7 +68,7 @@ public class AuthController {
         newUser.setRole("USER");
         userService.saveUser(newUser);
 
-        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail(), newUser.getRole());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getEmail(), newUser.getRole(), newUser.getId());
 
         userCodeRepository.delete(userCode);
 
@@ -82,7 +82,7 @@ public class AuthController {
                 passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword()) &&
                 existingUser.get().isEnabled()) {
             String token = jwtUtil.generateToken(
-                    existingUser.get().getUsername(), user.getEmail(), existingUser.get().getRole());
+                    existingUser.get().getUsername(), user.getEmail(), existingUser.get().getRole(), existingUser.get().getId());
 
             return ResponseEntity.ok().body(Map.of("token", token));
         }
@@ -121,12 +121,12 @@ public class AuthController {
             userFilter.setUser(newUser);
             userFilterRepository.save(userFilter);
 
-            String jwt = jwtUtil.generateToken(name, email, "USER");
+            String jwt = jwtUtil.generateToken(name, email, "USER", newUser.getId());
             return ResponseEntity.ok().body(Map.of("token", jwt));
         }
 
         if (existingUser.get().isEnabled()) {
-            String jwt = jwtUtil.generateToken(existingUser.get().getUsername(), email, existingUser.get().getRole());
+            String jwt = jwtUtil.generateToken(existingUser.get().getUsername(), email, existingUser.get().getRole(), existingUser.get().getId());
             return ResponseEntity.ok().body(Map.of("token", jwt));
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Ваш аккаунт заблокирован");
