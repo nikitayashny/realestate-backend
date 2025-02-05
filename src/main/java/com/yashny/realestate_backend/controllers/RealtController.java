@@ -27,7 +27,7 @@ public class RealtController {
     public ResponseEntity<?> getRealts(@ModelAttribute RequestRealtDto requestRealtDto) {
         try {
             List<Realt> realts = realtService.getRealts(requestRealtDto);
-            long count = realtService.getCount();
+            long count = realtService.getCount(requestRealtDto);
 
             RealtsResponse response = new RealtsResponse(realts, count);
             return ResponseEntity.ok(response);

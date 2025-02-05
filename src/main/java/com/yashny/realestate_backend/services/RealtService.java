@@ -1,22 +1,28 @@
 package com.yashny.realestate_backend.services;
 
 import com.yashny.realestate_backend.dto.RequestRealtDto;
+import com.yashny.realestate_backend.entities.DealType;
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.entities.UserFilter;
+import com.yashny.realestate_backend.repositories.DealTypeRepository;
 import com.yashny.realestate_backend.repositories.FavoriteRepository;
 import com.yashny.realestate_backend.repositories.RealtRepository;
 import com.yashny.realestate_backend.repositories.UserFilterRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,13 +36,63 @@ public class RealtService {
     private final FavoriteRepository favoriteRepository;
     private final UserFilterRepository userFilterRepository;
     private final EmailSenderService emailSenderService;
+    private final DealTypeRepository dealTypeRepository;
 
     public List<Realt> getRealts(RequestRealtDto requestRealtDto) {
         int page = requestRealtDto.getPage();
         int limit = requestRealtDto.getLimit();
 
-        Pageable pageable = PageRequest.of(page, limit);
-        Page<Realt> realtPage = realtRepository.findAll(pageable);
+        List<Realt> realts = realtRepository.findAll();
+
+        if (requestRealtDto.getDealTypeId() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getDealTypeId().equals(realt.getDealType().getId()))
+                    .toList();
+        }
+
+        if (requestRealtDto.getTypeId() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getTypeId().equals(realt.getType().getId()))
+                    .toList();
+        }
+
+        if (requestRealtDto.getRoomsCount() != 0 && requestRealtDto.getRoomsCount() < 5) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getRoomsCount() == realt.getRoomsCount())
+                    .collect(Collectors.toList());
+        }
+        if (requestRealtDto.getRoomsCount() >= 5) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getRoomsCount() <= realt.getRoomsCount())
+                    .collect(Collectors.toList());
+        }
+        if (requestRealtDto.getMaxPrice() != -1) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getMaxPrice() >= realt.getPrice())
+                    .collect(Collectors.toList());
+        }
+
+//        Pageable pageable = PageRequest.of(page, limit);
+//        Page<Realt> realtPage = realtRepository.findAll(pageable);
+
+        List<Realt> sortedRealts = new ArrayList<>();
+
+        if (requestRealtDto.getSortType() == 1) {
+            sortedRealts = realts.stream()
+                    .sorted(Comparator.comparingLong(realt ->
+                            realt.getViews() + realt.getLikes() * 5 + realt.getReposts() * 10))
+                    .toList().reversed();
+        } else if (requestRealtDto.getSortType() == 2) {
+            sortedRealts = realts.stream()
+                    .sorted(Comparator.comparing(Realt::getDateOfCreated))
+                    .toList().reversed();
+        }
+
+        int start = Math.min(page * limit, realts.size());
+        int end = Math.min(start + limit, realts.size());
+
+        List<Realt> paginatedRealts = sortedRealts.subList(start, end);
+        Page<Realt> realtPage = new PageImpl<>(paginatedRealts, PageRequest.of(page, limit), realts.size());
 
         for (Realt realt : realtPage.getContent()) {
             User user = realt.getUser();
@@ -160,7 +216,35 @@ public class RealtService {
                 .orElseThrow(() -> new EntityNotFoundException("Realt not found with id " + id));
     }
 
-    public long getCount() {
-        return realtRepository.count();
+    public long getCount(RequestRealtDto requestRealtDto) {
+
+        List<Realt> realts = realtRepository.findAll();
+
+        if (requestRealtDto.getDealTypeId() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getDealTypeId().equals(realt.getDealType().getId()))
+                    .toList();
+        }
+        if (requestRealtDto.getTypeId() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getTypeId().equals(realt.getType().getId()))
+                    .toList();
+        }
+        if (requestRealtDto.getRoomsCount() != 0 && requestRealtDto.getRoomsCount() < 5) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getRoomsCount() == realt.getRoomsCount())
+                    .collect(Collectors.toList());
+        }
+        if (requestRealtDto.getRoomsCount() >= 5) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getRoomsCount() <= realt.getRoomsCount())
+                    .collect(Collectors.toList());
+        }
+        if (requestRealtDto.getMaxPrice() != -1) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getMaxPrice() >= realt.getPrice())
+                    .collect(Collectors.toList());
+        }
+        return realts.size();
     }
 }

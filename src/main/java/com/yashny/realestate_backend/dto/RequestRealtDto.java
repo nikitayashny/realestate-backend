@@ -10,4 +10,9 @@ import lombok.Data;
 public class RequestRealtDto {
     private int page;
     private int limit;
+    private Long dealTypeId;
+    private Long typeId;
+    private Long roomsCount;
+    private Long maxPrice;
+    private Long sortType;
 }
