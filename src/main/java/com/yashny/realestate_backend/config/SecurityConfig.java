@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login", "/error", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/realts/**", "/api/posts/**", "/api/users/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/realts/view/**", "/api/realts/repost/**").permitAll()

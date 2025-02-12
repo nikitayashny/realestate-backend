@@ -28,11 +28,8 @@ public class WebConfig {
         config.addAllowedOrigin("https://localhost:3000");
         config.addAllowedOrigin("https://localhost:443");
         config.addAllowedOrigin("http://localhost:5000");
-        config.addAllowedOriginPattern("https://*.ngrok-free.app");
-        config.setAllowedHeaders(Arrays.asList(
-                HttpHeaders.AUTHORIZATION,
-                HttpHeaders.CONTENT_TYPE,
-                HttpHeaders.ACCEPT));
+
+        config.addAllowedHeader("*");
         config.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(),
                 HttpMethod.POST.name(),
