@@ -1,7 +1,7 @@
 package com.yashny.realestate_backend.services;
 
 import com.yashny.realestate_backend.entities.ChatMessage;
-import com.yashny.realestate_backend.enums.MessageStatus;
+import com.yashny.realestate_backend.enums. MessageStatus;
 import com.yashny.realestate_backend.repositories.ChatMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

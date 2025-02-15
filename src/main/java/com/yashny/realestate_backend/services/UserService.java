@@ -1,8 +1,10 @@
 package com.yashny.realestate_backend.services;
 
+import com.yashny.realestate_backend.entities.ChatRoom;
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.entities.UserFilter;
+import com.yashny.realestate_backend.repositories.ChatRoomRepository;
 import com.yashny.realestate_backend.repositories.RealtRepository;
 import com.yashny.realestate_backend.repositories.UserFilterRepository;
 import com.yashny.realestate_backend.repositories.UserRepository;
@@ -11,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +24,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserFilterRepository userFilterRepository;
     private final RealtRepository realtRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     public void saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -86,5 +87,21 @@ public class UserService {
             user.setRole("USER");
         }
         userRepository.save(user);
+    }
+
+    public List<User> getUserChats(Long id) {
+        List<ChatRoom> chatRooms = chatRoomRepository.findAll();
+
+        Set<Long> userIds = new HashSet<>();
+        for (ChatRoom chatRoom : chatRooms) {
+            if (chatRoom.getSenderId().equals(id)) {
+                userIds.add(chatRoom.getRecipientId());
+            }
+            if (chatRoom.getRecipientId().equals(id)) {
+                userIds.add(chatRoom.getSenderId());
+            }
+        }
+        return userRepository.findAllById(userIds);
+
     }
 }
