@@ -5,10 +5,7 @@ import com.yashny.realestate_backend.entities.DealType;
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.entities.UserFilter;
-import com.yashny.realestate_backend.repositories.DealTypeRepository;
-import com.yashny.realestate_backend.repositories.FavoriteRepository;
-import com.yashny.realestate_backend.repositories.RealtRepository;
-import com.yashny.realestate_backend.repositories.UserFilterRepository;
+import com.yashny.realestate_backend.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
@@ -36,6 +33,7 @@ public class RealtService {
     private final FavoriteRepository favoriteRepository;
     private final UserFilterRepository userFilterRepository;
     private final EmailSenderService emailSenderService;
+    private final SubscriptionService subscriptionService;
 
     public List<Realt> getRealts(RequestRealtDto requestRealtDto) {
         int page = requestRealtDto.getPage();
@@ -71,16 +69,20 @@ public class RealtService {
                     .collect(Collectors.toList());
         }
 
-//        Pageable pageable = PageRequest.of(page, limit);
-//        Page<Realt> realtPage = realtRepository.findAll(pageable);
-
         List<Realt> sortedRealts = new ArrayList<>();
+
 
         if (requestRealtDto.getSortType() == 1) {
             sortedRealts = realts.stream()
-                    .sorted(Comparator.comparingLong(realt ->
-                            realt.getViews() + realt.getLikes() * 5 + realt.getReposts() * 10))
-                    .toList().reversed();
+                    .sorted(Comparator.comparingLong(realt -> {
+                        long score = realt.getViews() + realt.getLikes() * 5 + realt.getReposts() * 10;
+                        if (subscriptionService.getSubscription(realt.getUser()) != null) {
+                            score += 10000;
+                        }
+                        return score;
+                    }))
+                    .collect(Collectors.toList())
+                    .reversed();
         } else if (requestRealtDto.getSortType() == 2) {
             sortedRealts = realts.stream()
                     .sorted(Comparator.comparing(Realt::getDateOfCreated))
