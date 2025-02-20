@@ -1,7 +1,6 @@
 package com.yashny.realestate_backend.services;
 
 import com.yashny.realestate_backend.dto.RequestRealtDto;
-import com.yashny.realestate_backend.entities.DealType;
 import com.yashny.realestate_backend.entities.Realt;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.entities.UserFilter;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor

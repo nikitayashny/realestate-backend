@@ -13,6 +13,7 @@ import com.yashny.realestate_backend.repositories.PaymentRepository;
 import com.yashny.realestate_backend.repositories.SubscriptionRepository;
 import com.yashny.realestate_backend.repositories.UserRepository;
 import com.yashny.realestate_backend.services.StripeService;
+import com.yashny.realestate_backend.services.SubscriptionService;
 import com.yashny.realestate_backend.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,16 +32,22 @@ public class PaymentController {
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final SubscriptionService subscriptionService;
 
     @Value("${stripe.session.secretKey}")
     private String endpointSecret;
 
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestBody PaymentRequest paymentRequest,
-                                                   @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         try {
             String token = authorization.substring(7);
             User user = jwtUtil.getUserFromToken(token);
+
+            if (paymentRequest.getName().equals("subscription")
+                    && subscriptionService.getSubscription(user) != null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
             StripeResponse stripeResponse = stripeService.checkout(paymentRequest, user);
             return ResponseEntity.status(HttpStatus.OK).body(stripeResponse);
         } catch (Exception e) {
