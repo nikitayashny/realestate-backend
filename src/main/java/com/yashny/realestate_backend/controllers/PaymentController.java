@@ -1,6 +1,5 @@
 package com.yashny.realestate_backend.controllers;
 
-import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.net.Webhook;
 import com.stripe.model.checkout.Session;
@@ -8,12 +7,15 @@ import com.stripe.exception.SignatureVerificationException;
 import com.yashny.realestate_backend.dto.PaymentRequest;
 import com.yashny.realestate_backend.dto.StripeResponse;
 import com.yashny.realestate_backend.entities.Payment;
+import com.yashny.realestate_backend.entities.Subscription;
 import com.yashny.realestate_backend.entities.User;
 import com.yashny.realestate_backend.repositories.PaymentRepository;
+import com.yashny.realestate_backend.repositories.SubscriptionRepository;
 import com.yashny.realestate_backend.repositories.UserRepository;
 import com.yashny.realestate_backend.services.StripeService;
 import com.yashny.realestate_backend.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +30,10 @@ public class PaymentController {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
-    private final String endpointSecret = "whsec_f933feb098a3a862d73bb7f7ef7294553b6c7159080fb3a5599c6c349467e446";
+    @Value("${stripe.session.secretKey}")
+    private String endpointSecret;
 
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestBody PaymentRequest paymentRequest,
@@ -74,6 +78,12 @@ public class PaymentController {
             payment.setPrice(session.getAmountTotal() / 100);
 
             paymentRepository.save(payment);
+
+            Subscription subscription = new Subscription();
+            subscription.setUser(user);
+            subscription.setQuantity(Long.parseLong(session.getMetadata().get("quantity")));
+            subscriptionRepository.save(subscription);
+
         }
 
         return ResponseEntity.ok("Webhook received");
