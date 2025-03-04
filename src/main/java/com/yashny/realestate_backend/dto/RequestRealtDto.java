@@ -15,4 +15,8 @@ public class RequestRealtDto {
     private Long roomsCount;
     private Long maxPrice;
     private Long sortType;
+    private Long repair;
+    private Long floor;
+    private String city;
+    private Long minArea;
 }

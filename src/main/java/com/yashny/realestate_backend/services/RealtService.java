@@ -39,6 +39,26 @@ public class RealtService {
 
         List<Realt> realts = realtRepository.findAll();
 
+        if (requestRealtDto.getMaxPrice() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getMinArea() <= realt.getArea())
+                    .collect(Collectors.toList());
+        }
+        if (!requestRealtDto.getCity().isEmpty()) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getCity().equals(realt.getCity()))
+                    .toList();
+        }
+        if (requestRealtDto.getFloor() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getFloor().equals(realt.getFloor()))
+                    .toList();
+        }
+        if (requestRealtDto.getRepair() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getRepair().equals(realt.getRepair()))
+                    .toList();
+        }
         if (requestRealtDto.getDealTypeId() != 0) {
             realts = realts.stream()
                     .filter(realt -> requestRealtDto.getDealTypeId().equals(realt.getDealType().getId()))
@@ -219,6 +239,26 @@ public class RealtService {
 
         List<Realt> realts = realtRepository.findAll();
 
+        if (requestRealtDto.getMaxPrice() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getMinArea() <= realt.getArea())
+                    .collect(Collectors.toList());
+        }
+        if (!requestRealtDto.getCity().isEmpty()) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getCity().equals(realt.getCity()))
+                    .toList();
+        }
+        if (requestRealtDto.getFloor() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getFloor().equals(realt.getFloor()))
+                    .toList();
+        }
+        if (requestRealtDto.getRepair() != 0) {
+            realts = realts.stream()
+                    .filter(realt -> requestRealtDto.getRepair().equals(realt.getRepair()))
+                    .toList();
+        }
         if (requestRealtDto.getDealTypeId() != 0) {
             realts = realts.stream()
                     .filter(realt -> requestRealtDto.getDealTypeId().equals(realt.getDealType().getId()))

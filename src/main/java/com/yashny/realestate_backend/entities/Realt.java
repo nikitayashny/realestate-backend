@@ -57,6 +57,8 @@ public class Realt {
     @Column(name = "likes", columnDefinition = "bigint default 0")
     private Long likes;
     private LocalDateTime dateOfCreated;
+    private Long repair;
+    private Long floor;
 
     @PrePersist
     private void onCreate() {
