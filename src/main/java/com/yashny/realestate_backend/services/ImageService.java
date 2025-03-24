@@ -40,7 +40,7 @@ public class ImageService {
                     .contentType("image/jpeg")
                     .build());
 
-            String imageUrl = String.format("http://localhost:9000/%s/%s", bucketName, objectName);
+            String imageUrl = String.format("https://localhost:9000/%s/%s", bucketName, objectName);
             imageUrls.add(imageUrl);
         }
 
@@ -65,6 +65,6 @@ public class ImageService {
                 .contentType("image/jpeg")
                 .build());
 
-        return String.format("http://localhost:9000/%s/%s", bucketName, imageName);
+        return String.format("https://localhost:9000/%s/%s", bucketName, imageName);
     }
 }
