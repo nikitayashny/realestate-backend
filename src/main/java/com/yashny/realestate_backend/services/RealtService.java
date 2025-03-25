@@ -125,7 +125,9 @@ public class RealtService {
         realt.setLikes(0L);
         realt.setReposts(0L);
         realt.setViews(0L);
-        realt.setImages(imageUrls);
+        if (!imageUrls.isEmpty()) {
+            realt.setImages(imageUrls);
+        }
         realtRepository.save(realt);
 
         List<UserFilter> userFilterList = userFilterRepository.findAll();

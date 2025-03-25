@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -47,13 +48,16 @@ public class RealtController {
 
     @PostMapping("")
     public ResponseEntity<?> addRealt(@ModelAttribute("realt") Realt realt,
-                                      @RequestParam("files") MultipartFile[] files,
+                                      @RequestParam(value = "files", required = false) MultipartFile[] files,
                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         try {
             String token = authorization.substring(7);
             User user = jwtUtil.getUserFromToken(token);
             realt.setUser(user);
-            List<String> imageUrls = realtService.uploadImages(files);
+            List<String> imageUrls = new ArrayList<>();
+            if (files != null) {
+                imageUrls = realtService.uploadImages(files);
+            }
             realtService.addRealt(realt, imageUrls);
             return ResponseEntity.ok().build();
         } catch (Exception e) {

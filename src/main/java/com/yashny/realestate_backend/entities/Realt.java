@@ -42,7 +42,7 @@ public class Realt {
     @Column(name = "street")
     private String street;
     @Column(name = "house")
-    private int house;
+    private String house;
     @Column(name = "article", columnDefinition = "text")
     private String article;
     @Column(name = "area")
