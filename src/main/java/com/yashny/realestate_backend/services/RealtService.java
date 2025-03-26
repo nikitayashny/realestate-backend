@@ -46,7 +46,12 @@ public class RealtService {
         }
         if (!requestRealtDto.getCity().isEmpty()) {
             realts = realts.stream()
-                    .filter(realt -> requestRealtDto.getCity().equals(realt.getCity()))
+                    .filter(realt -> realt.getCity().toLowerCase().contains(requestRealtDto.getCity().toLowerCase()))
+                    .toList();
+        }
+        if (!requestRealtDto.getStreet().isEmpty()) {
+            realts = realts.stream()
+                    .filter(realt -> realt.getStreet().toLowerCase().contains(requestRealtDto.getStreet().toLowerCase()))
                     .toList();
         }
         if (requestRealtDto.getFloor() != 0) {
@@ -248,7 +253,12 @@ public class RealtService {
         }
         if (!requestRealtDto.getCity().isEmpty()) {
             realts = realts.stream()
-                    .filter(realt -> requestRealtDto.getCity().equals(realt.getCity()))
+                    .filter(realt -> realt.getCity().toLowerCase().contains(requestRealtDto.getCity().toLowerCase()))
+                    .toList();
+        }
+        if (!requestRealtDto.getStreet().isEmpty()) {
+            realts = realts.stream()
+                    .filter(realt -> realt.getStreet().toLowerCase().contains(requestRealtDto.getStreet().toLowerCase()))
                     .toList();
         }
         if (requestRealtDto.getFloor() != 0) {

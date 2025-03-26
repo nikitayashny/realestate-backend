@@ -19,4 +19,5 @@ public class RequestRealtDto {
     private Long floor;
     private String city;
     private Long minArea;
+    private String street;
 }
